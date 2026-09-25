@@ -1,0 +1,2968 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport"
+      content="width=device-width, initial-scale=1, viewport-fit=cover">
+
+<title>PC Forge</title>
+
+<!--
+    Three.js подключается через importmap.
+    Это важно для GitHub Pages.
+-->
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://unpkg.com/three@0.160.0/build/three.module.min.js",
+    "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+  }
+}
+</script>
+
+<style>
+
+/* =========================================================
+   ОСНОВА
+========================================================= */
+
+:root {
+    --bg: #070a0f;
+    --panel: #0d121a;
+    --panel2: #111925;
+    --border: #202c3d;
+    --text: #f3f6ff;
+    --muted: #8f9bad;
+    --blue: #5da9ff;
+    --blue2: #8cc5ff;
+    --green: #40d58a;
+    --red: #ff637d;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+html {
+    scroll-behavior: smooth;
+}
+
+body {
+    margin: 0;
+    background:
+        radial-gradient(
+            circle at 50% -20%,
+            #15243a 0,
+            #070a0f 45%
+        );
+
+    color: var(--text);
+
+    font-family:
+        -apple-system,
+        BlinkMacSystemFont,
+        "SF Pro Display",
+        "Segoe UI",
+        Arial,
+        sans-serif;
+
+    min-height: 100vh;
+}
+
+button,
+input,
+select {
+    font: inherit;
+}
+
+button {
+    -webkit-tap-highlight-color: transparent;
+}
+
+button:active {
+    transform: scale(.97);
+}
+
+/* =========================================================
+   ШАПКА
+========================================================= */
+
+header {
+    position: sticky;
+    top: 0;
+
+    z-index: 100;
+
+    background: rgba(8, 12, 18, .88);
+
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+
+    border-bottom: 1px solid var(--border);
+
+    padding:
+        calc(12px + env(safe-area-inset-top))
+        16px
+        12px;
+}
+
+.header-inner {
+    max-width: 1350px;
+    margin: auto;
+}
+
+.logo {
+    font-size: 24px;
+    font-weight: 900;
+    letter-spacing: -.5px;
+}
+
+.logo span {
+    color: var(--blue);
+}
+
+.navigation {
+    display: flex;
+    gap: 7px;
+
+    margin-top: 12px;
+
+    overflow-x: auto;
+    scrollbar-width: none;
+
+    padding-bottom: 2px;
+}
+
+.navigation::-webkit-scrollbar {
+    display: none;
+}
+
+.nav-button {
+    flex: 0 0 auto;
+
+    border: 1px solid #29364a;
+
+    background: #101722;
+
+    color: #9ba8ba;
+
+    border-radius: 11px;
+
+    padding: 9px 13px;
+
+    cursor: pointer;
+
+    transition: .2s;
+}
+
+.nav-button:hover {
+    color: white;
+    border-color: #40516b;
+}
+
+.nav-button.active {
+    background: var(--blue);
+    color: #06101b;
+    border-color: var(--blue);
+
+    font-weight: 800;
+}
+
+/* =========================================================
+   СТРАНИЦЫ
+========================================================= */
+
+.page {
+    display: none;
+
+    max-width: 1350px;
+
+    margin: auto;
+
+    padding:
+        28px
+        18px
+        calc(70px + env(safe-area-inset-bottom));
+}
+
+.page.active {
+    display: block;
+}
+
+.hero {
+    margin-bottom: 25px;
+}
+
+.hero h1 {
+    margin: 0 0 12px;
+
+    font-size: clamp(34px, 6vw, 58px);
+
+    line-height: 1;
+
+    letter-spacing: -1.5px;
+}
+
+.hero p {
+    color: var(--muted);
+
+    max-width: 750px;
+
+    font-size: 17px;
+
+    line-height: 1.6;
+}
+
+/* =========================================================
+   КАРТОЧКИ
+========================================================= */
+
+.card {
+    background:
+        linear-gradient(
+            145deg,
+            rgba(18, 26, 39, .96),
+            rgba(10, 15, 23, .96)
+        );
+
+    border: 1px solid var(--border);
+
+    border-radius: 20px;
+
+    padding: 20px;
+
+    box-shadow:
+        0 15px 50px rgba(0,0,0,.18);
+}
+
+.grid {
+    display: grid;
+
+    grid-template-columns:
+        repeat(auto-fit, minmax(230px, 1fr));
+
+    gap: 15px;
+}
+
+/* =========================================================
+   КНОПКИ
+========================================================= */
+
+.btn {
+    border: 0;
+
+    background: var(--blue);
+
+    color: #06101b;
+
+    font-weight: 800;
+
+    border-radius: 11px;
+
+    padding: 12px 16px;
+
+    cursor: pointer;
+}
+
+.btn.secondary {
+    background: #182233;
+    color: #eaf2ff;
+}
+
+.btn.green {
+    background: var(--green);
+}
+
+.btn.red {
+    background: var(--red);
+    color: white;
+}
+
+/* =========================================================
+   3D
+========================================================= */
+
+.builder-layout {
+    display: grid;
+
+    grid-template-columns:
+        minmax(0, 1.3fr)
+        minmax(300px, .7fr);
+
+    gap: 16px;
+}
+
+.scene-card {
+    padding: 0;
+
+    overflow: hidden;
+
+    position: relative;
+
+    min-height: 600px;
+}
+
+#scene {
+    width: 100%;
+    height: 600px;
+}
+
+.scene-help {
+    position: absolute;
+
+    left: 15px;
+    right: 15px;
+    bottom: 15px;
+
+    padding: 11px 13px;
+
+    border-radius: 12px;
+
+    background: rgba(5, 9, 15, .82);
+
+    border: 1px solid #27364c;
+
+    color: #aeb9ca;
+
+    font-size: 13px;
+
+    pointer-events: none;
+}
+
+.scene-title {
+    position: absolute;
+
+    top: 15px;
+    left: 15px;
+
+    background: rgba(5,9,15,.8);
+
+    border: 1px solid #27364c;
+
+    padding: 9px 12px;
+
+    border-radius: 10px;
+
+    font-weight: 700;
+
+    pointer-events: none;
+}
+
+/* =========================================================
+   КОМПЛЕКТУЮЩИЕ
+========================================================= */
+
+.parts {
+    display: flex;
+
+    flex-direction: column;
+
+    gap: 9px;
+}
+
+.part {
+    display: flex;
+
+    align-items: center;
+
+    justify-content: space-between;
+
+    gap: 10px;
+
+    padding: 13px;
+
+    border-radius: 12px;
+
+    background: #111a28;
+
+    border: 1px solid #26344a;
+}
+
+.part small {
+    display: block;
+
+    margin-top: 4px;
+
+    color: #8793a7;
+}
+
+.total {
+    font-size: 30px;
+
+    font-weight: 900;
+
+    margin: 20px 0;
+}
+
+/* =========================================================
+   КАТАЛОГ
+========================================================= */
+
+.search {
+    width: 100%;
+
+    background: #0e151f;
+
+    color: white;
+
+    border: 1px solid #29374d;
+
+    outline: none;
+
+    border-radius: 13px;
+
+    padding: 14px 15px;
+
+    margin-bottom: 15px;
+}
+
+.search:focus {
+    border-color: var(--blue);
+}
+
+.product-icon {
+    height: 135px;
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    font-size: 65px;
+
+    border-radius: 14px;
+
+    background:
+        radial-gradient(
+            circle,
+            #1b2c45,
+            #0b1018
+        );
+
+    margin-bottom: 14px;
+}
+
+.badge {
+    display: inline-block;
+
+    padding: 5px 8px;
+
+    border-radius: 7px;
+
+    background: #17263a;
+
+    color: var(--blue2);
+
+    font-size: 12px;
+
+    font-weight: 700;
+}
+
+.price {
+    font-size: 21px;
+
+    font-weight: 900;
+
+    margin: 14px 0;
+}
+
+.muted {
+    color: var(--muted);
+}
+
+/* =========================================================
+   СРАВНЕНИЕ
+========================================================= */
+
+.compare {
+    display: grid;
+
+    grid-template-columns: 1fr 1fr;
+
+    gap: 15px;
+}
+
+.compare-select {
+    width: 100%;
+
+    background: #111925;
+
+    color: white;
+
+    border: 1px solid #29374d;
+
+    border-radius: 11px;
+
+    padding: 12px;
+
+    margin-bottom: 15px;
+}
+
+.stat {
+    display: flex;
+
+    justify-content: space-between;
+
+    gap: 15px;
+
+    padding: 10px 0;
+
+    border-bottom: 1px solid #222d3e;
+}
+
+/* =========================================================
+   ИГРА
+========================================================= */
+
+.quiz-question {
+    font-size: 23px;
+
+    font-weight: 800;
+
+    margin-bottom: 18px;
+}
+
+.answers {
+    display: grid;
+
+    gap: 10px;
+}
+
+.answer {
+    border: 1px solid #29374d;
+
+    background: #111a27;
+
+    color: white;
+
+    border-radius: 12px;
+
+    padding: 14px;
+
+    text-align: left;
+
+    cursor: pointer;
+}
+
+.answer.correct {
+    background: #15452f;
+
+    border-color: #40d58a;
+}
+
+.answer.wrong {
+    background: #502332;
+
+    border-color: #ff637d;
+}
+
+.score {
+    font-size: 34px;
+
+    font-weight: 900;
+}
+
+/* =========================================================
+   КОРЗИНА
+========================================================= */
+
+.cart-row {
+    display: flex;
+
+    justify-content: space-between;
+
+    align-items: center;
+
+    gap: 15px;
+
+    padding: 16px 0;
+
+    border-bottom: 1px solid #222c3d;
+}
+
+/* =========================================================
+   MOBILE
+========================================================= */
+
+@media (max-width: 850px) {
+
+    .page {
+        padding-left: 13px;
+        padding-right: 13px;
+    }
+
+    .builder-layout {
+        grid-template-columns: 1fr;
+    }
+
+    .scene-card {
+        min-height: 430px;
+    }
+
+    #scene {
+        height: 430px;
+    }
+
+    .compare {
+        grid-template-columns: 1fr;
+    }
+
+    .cart-row {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+}
+
+</style>
+</head>
+
+
+<body>
+
+
+<!-- =========================================================
+     HEADER
+========================================================= -->
+
+<header>
+
+<div class="header-inner">
+
+<div class="logo">
+PC <span>FORGE</span>
+</div>
+
+<nav class="navigation">
+
+<button class="nav-button active" data-page="builder">
+🖥️ ПК
+</button>
+
+<button class="nav-button" data-page="learn">
+🔬 Изучить
+</button>
+
+<button class="nav-button" data-page="catalog">
+📚 Каталог
+</button>
+
+<button class="nav-button" data-page="compare">
+⚔️ Сравнить
+</button>
+
+<button class="nav-button" data-page="game">
+🎮 Игра
+</button>
+
+<button class="nav-button" data-page="shop">
+🛒 Магазин
+</button>
+
+<button class="nav-button" data-page="cart">
+Корзина <span id="cartCount">0</span>
+</button>
+
+</nav>
+
+</div>
+
+</header>
+
+
+
+<!-- =========================================================
+     ПК
+========================================================= -->
+
+<section
+    id="builder"
+    class="page active"
+>
+
+<div class="hero">
+
+<h1>
+Собери свой ПК
+</h1>
+
+<p>
+Интерактивный компьютер в 3D.
+Вращай корпус, изучай внутренние компоненты
+и собирай собственную конфигурацию.
+</p>
+
+</div>
+
+
+<div class="builder-layout">
+
+
+<div class="card scene-card">
+
+<div class="scene-title">
+3D-модель компьютера
+</div>
+
+<div id="scene"></div>
+
+<div class="scene-help">
+📱 Пальцем вращай модель · двумя пальцами приближай
+</div>
+
+</div>
+
+
+<div class="card">
+
+<h2>
+Твоя сборка
+</h2>
+
+<div
+    id="buildParts"
+    class="parts"
+></div>
+
+<div
+    id="buildTotal"
+    class="total"
+>
+0 ₽
+</div>
+
+<button
+    class="btn"
+    id="addBuildButton"
+>
+Добавить сборку в корзину
+</button>
+
+</div>
+
+</div>
+
+</section>
+
+
+
+<!-- =========================================================
+     ИЗУЧИТЬ
+========================================================= -->
+
+<section
+    id="learn"
+    class="page"
+>
+
+<div class="hero">
+
+<h1>
+Изучение ПК
+</h1>
+
+<p>
+Разберись, что находится внутри компьютера
+и зачем нужна каждая деталь.
+</p>
+
+</div>
+
+<div
+    id="learnGrid"
+    class="grid"
+></div>
+
+</section>
+
+
+
+<!-- =========================================================
+     КАТАЛОГ
+========================================================= -->
+
+<section
+    id="catalog"
+    class="page"
+>
+
+<div class="hero">
+
+<h1>
+Энциклопедия
+</h1>
+
+<p>
+Ищи видеокарты, процессоры, оперативную память,
+SSD и другие комплектующие.
+</p>
+
+</div>
+
+<input
+    id="catalogSearch"
+    class="search"
+    placeholder="🔎 Например: RTX 4070, Ryzen, DDR5..."
+>
+
+<div
+    id="catalogGrid"
+    class="grid"
+></div>
+
+</section>
+
+
+
+<!-- =========================================================
+     СРАВНЕНИЕ
+========================================================= -->
+
+<section
+    id="compare"
+    class="page"
+>
+
+<div class="hero">
+
+<h1>
+Сравнение
+</h1>
+
+<p>
+Выбери два компонента и сравни характеристики.
+</p>
+
+</div>
+
+
+<div class="compare">
+
+
+<div class="card">
+
+<h2>
+Компонент №1
+</h2>
+
+<select
+    id="compareA"
+    class="compare-select"
+></select>
+
+<div id="compareInfoA"></div>
+
+</div>
+
+
+<div class="card">
+
+<h2>
+Компонент №2
+</h2>
+
+<select
+    id="compareB"
+    class="compare-select"
+></select>
+
+<div id="compareInfoB"></div>
+
+</div>
+
+</div>
+
+</section>
+
+
+
+<!-- =========================================================
+     ИГРА
+========================================================= -->
+
+<section
+    id="game"
+    class="page"
+>
+
+<div class="hero">
+
+<h1>
+Проверь знания
+</h1>
+
+<p>
+Ответь на вопросы про устройство компьютера.
+</p>
+
+</div>
+
+
+<div class="card">
+
+<div class="score">
+Очки: <span id="score">0</span>
+</div>
+
+<br>
+
+<div id="quiz"></div>
+
+</div>
+
+</section>
+
+
+
+<!-- =========================================================
+     МАГАЗИН
+========================================================= -->
+
+<section
+    id="shop"
+    class="page"
+>
+
+<div class="hero">
+
+<h1>
+Магазин
+</h1>
+
+<p>
+Комплектующие, которые можно добавить в корзину.
+</p>
+
+</div>
+
+<div
+    id="shopGrid"
+    class="grid"
+></div>
+
+</section>
+
+
+
+<!-- =========================================================
+     КОРЗИНА
+========================================================= -->
+
+<section
+    id="cart"
+    class="page"
+>
+
+<div class="hero">
+
+<h1>
+Корзина
+</h1>
+
+<p>
+Твои комплектующие и готовые сборки.
+</p>
+
+</div>
+
+
+<div class="card">
+
+<div id="cartItems"></div>
+
+<div
+    id="cartTotal"
+    class="total"
+>
+0 ₽
+</div>
+
+<button
+    id="checkoutButton"
+    class="btn green"
+>
+Оформить заказ
+</button>
+
+</div>
+
+</section>
+
+
+
+<!-- =========================================================
+     JAVASCRIPT
+========================================================= -->
+
+<script type="module">
+
+import * as THREE from "three";
+
+import {
+    OrbitControls
+} from "three/addons/controls/OrbitControls.js";
+
+
+
+/* =========================================================
+   БАЗА
+========================================================= */
+
+const products = [
+
+{
+    id: "rtx5090",
+    name: "GeForce RTX 5090",
+    brand: "NVIDIA",
+    category: "Видеокарта",
+    price: 199990,
+    icon: "🎮",
+    memory: "32 GB",
+    memoryType: "GDDR7",
+    description:
+        "Флагманская видеокарта поколения RTX 50."
+},
+
+{
+    id: "rtx5080",
+    name: "GeForce RTX 5080",
+    brand: "NVIDIA",
+    category: "Видеокарта",
+    price: 129990,
+    icon: "🎮",
+    memory: "16 GB",
+    memoryType: "GDDR7",
+    description:
+        "Мощная видеокарта для игр и 3D."
+},
+
+{
+    id: "rtx5070ti",
+    name: "GeForce RTX 5070 Ti",
+    brand: "NVIDIA",
+    category: "Видеокарта",
+    price: 99990,
+    icon: "🎮",
+    memory: "16 GB",
+    memoryType: "GDDR7",
+    description:
+        "Производительная видеокарта среднего-высокого класса."
+},
+
+{
+    id: "rtx5070",
+    name: "GeForce RTX 5070",
+    brand: "NVIDIA",
+    category: "Видеокарта",
+    price: 79990,
+    icon: "🎮",
+    memory: "12 GB",
+    memoryType: "GDDR7",
+    description:
+        "Современная видеокарта для игрового ПК."
+},
+
+{
+    id: "rtx4070",
+    name: "GeForce RTX 4070",
+    brand: "NVIDIA",
+    category: "Видеокарта",
+    price: 69990,
+    icon: "🎮",
+    memory: "12 GB",
+    memoryType: "GDDR6X",
+    description:
+        "Популярная игровая видеокарта."
+},
+
+{
+    id: "rtx3060",
+    name: "GeForce RTX 3060",
+    brand: "NVIDIA",
+    category: "Видеокарта",
+    price: 34990,
+    icon: "🎮",
+    memory: "12 GB",
+    memoryType: "GDDR6",
+    description:
+        "Видеокарта среднего класса."
+},
+
+{
+    id: "rx9070xt",
+    name: "Radeon RX 9070 XT",
+    brand: "AMD",
+    category: "Видеокарта",
+    price: 69990,
+    icon: "🔴",
+    memory: "16 GB",
+    memoryType: "GDDR6",
+    description:
+        "Современная производительная видеокарта AMD."
+},
+
+{
+    id: "rx9070",
+    name: "Radeon RX 9070",
+    brand: "AMD",
+    category: "Видеокарта",
+    price: 62990,
+    icon: "🔴",
+    memory: "16 GB",
+    memoryType: "GDDR6",
+    description:
+        "Современная видеокарта AMD."
+},
+
+{
+    id: "rx7800xt",
+    name: "Radeon RX 7800 XT",
+    brand: "AMD",
+    category: "Видеокарта",
+    price: 59990,
+    icon: "🔴",
+    memory: "16 GB",
+    memoryType: "GDDR6",
+    description:
+        "Игровая видеокарта AMD."
+},
+
+{
+    id: "arcb580",
+    name: "Intel Arc B580",
+    brand: "Intel",
+    category: "Видеокарта",
+    price: 39990,
+    icon: "🔵",
+    memory: "12 GB",
+    memoryType: "GDDR6",
+    description:
+        "Дискретная видеокарта Intel Arc."
+},
+
+{
+    id: "7800x3d",
+    name: "Ryzen 7 7800X3D",
+    brand: "AMD",
+    category: "Процессор",
+    price: 38990,
+    icon: "🧠",
+    cores: "8 ядер / 16 потоков",
+    description:
+        "Процессор AMD, ориентированный на игры."
+},
+
+{
+    id: "9950x",
+    name: "Ryzen 9 9950X",
+    brand: "AMD",
+    category: "Процессор",
+    price: 69990,
+    icon: "🧠",
+    cores: "16 ядер / 32 потока",
+    description:
+        "Мощный многоядерный процессор."
+},
+
+{
+    id: "corei7",
+    name: "Intel Core i7",
+    brand: "Intel",
+    category: "Процессор",
+    price: 54990,
+    icon: "🧠",
+    cores: "многоядерный",
+    description:
+        "Процессор Intel для производительных систем."
+},
+
+{
+    id: "ddr5",
+    name: "DDR5 32 GB",
+    brand: "Kingston",
+    category: "Оперативная память",
+    price: 11990,
+    icon: "💾",
+    memory: "32 GB",
+    memoryType: "DDR5",
+    description:
+        "Быстрая оперативная память."
+},
+
+{
+    id: "ddr4",
+    name: "DDR4 16 GB",
+    brand: "Kingston",
+    category: "Оперативная память",
+    price: 5990,
+    icon: "💾",
+    memory: "16 GB",
+    memoryType: "DDR4",
+    description:
+        "Оперативная память для совместимых систем."
+},
+
+{
+    id: "nvme1",
+    name: "NVMe SSD 1 TB",
+    brand: "Samsung",
+    category: "Накопитель",
+    price: 8990,
+    icon: "⚡",
+    memory: "1 TB",
+    description:
+        "Быстрый SSD для системы и игр."
+},
+
+{
+    id: "nvme2",
+    name: "NVMe SSD 2 TB",
+    brand: "Samsung",
+    category: "Накопитель",
+    price: 15990,
+    icon: "⚡",
+    memory: "2 TB",
+    description:
+        "Большой быстрый NVMe-накопитель."
+},
+
+{
+    id: "b650",
+    name: "B650",
+    brand: "AMD",
+    category: "Материнская плата",
+    price: 15990,
+    icon: "🟩",
+    description:
+        "Материнская плата для совместимых процессоров AMD."
+},
+
+{
+    id: "psu750",
+    name: "750W Power Supply",
+    brand: "PC Forge",
+    category: "Блок питания",
+    price: 9990,
+    icon: "🔌",
+    description:
+        "Блок питания мощностью 750 Вт."
+},
+
+{
+    id: "cooler",
+    name: "Tower Cooler",
+    brand: "PC Forge",
+    category: "Охлаждение",
+    price: 6990,
+    icon: "❄️",
+    description:
+        "Башенный кулер для охлаждения процессора."
+}
+
+];
+
+
+
+/* =========================================================
+   СБОРКА
+========================================================= */
+
+const build = [
+
+    products.find(p => p.id === "7800x3d"),
+
+    products.find(p => p.id === "rtx4070"),
+
+    products.find(p => p.id === "ddr5"),
+
+    products.find(p => p.id === "nvme1"),
+
+    products.find(p => p.id === "b650"),
+
+    products.find(p => p.id === "psu750"),
+
+    products.find(p => p.id === "cooler")
+
+];
+
+
+let cart = [];
+
+
+
+function money(value) {
+
+    return value.toLocaleString("ru-RU") + " ₽";
+
+}
+
+
+function buildTotal() {
+
+    return build.reduce(
+        (sum, item) => sum + item.price,
+        0
+    );
+
+}
+
+
+
+/* =========================================================
+   НАВИГАЦИЯ
+========================================================= */
+
+const navButtons =
+    document.querySelectorAll(".nav-button");
+
+const pages =
+    document.querySelectorAll(".page");
+
+
+navButtons.forEach(button => {
+
+    button.addEventListener("click", () => {
+
+        const pageName =
+            button.dataset.page;
+
+
+        navButtons.forEach(b => {
+            b.classList.remove("active");
+        });
+
+
+        pages.forEach(page => {
+            page.classList.remove("active");
+        });
+
+
+        button.classList.add("active");
+
+
+        const target =
+            document.getElementById(pageName);
+
+
+        if (target) {
+            target.classList.add("active");
+        }
+
+    });
+
+});
+
+
+
+/* =========================================================
+   СБОРКА
+========================================================= */
+
+function renderBuild() {
+
+    const container =
+        document.getElementById("buildParts");
+
+
+    container.innerHTML = "";
+
+
+    build.forEach(item => {
+
+        container.innerHTML += `
+
+        <div class="part">
+
+            <div>
+
+                <b>
+                    ${item.category}
+                </b>
+
+                <small>
+                    ${item.name}
+                </small>
+
+            </div>
+
+            <strong>
+                ${money(item.price)}
+            </strong>
+
+        </div>
+
+        `;
+
+    });
+
+
+    document.getElementById(
+        "buildTotal"
+    ).textContent =
+        money(buildTotal());
+
+}
+
+
+document
+    .getElementById("addBuildButton")
+    .addEventListener("click", () => {
+
+        cart.push({
+
+            name: "Готовый PC Forge",
+
+            category: "Готовая сборка",
+
+            icon: "🖥️",
+
+            price: buildTotal()
+
+        });
+
+
+        renderCart();
+
+        alert(
+            "Готовая сборка добавлена в корзину!"
+        );
+
+    });
+
+
+
+/* =========================================================
+   ИЗУЧЕНИЕ
+========================================================= */
+
+function renderLearn() {
+
+    const container =
+        document.getElementById("learnGrid");
+
+
+    const categories = [
+
+        {
+            icon: "🧠",
+            title: "Процессор",
+            text:
+                "Главный вычислительный компонент. Выполняет команды программ и производит расчёты."
+        },
+
+        {
+            icon: "🎮",
+            title: "Видеокарта",
+            text:
+                "Обрабатывает графику, создаёт изображение и используется в играх и 3D."
+        },
+
+        {
+            icon: "💾",
+            title: "Оперативная память",
+            text:
+                "Временно хранит данные, которые нужны работающим программам."
+        },
+
+        {
+            icon: "⚡",
+            title: "SSD",
+            text:
+                "Хранит Windows, игры, программы, документы и другие файлы."
+        },
+
+        {
+            icon: "🟩",
+            title: "Материнская плата",
+            text:
+                "Соединяет процессор, память, накопители, видеокарту и другие компоненты."
+        },
+
+        {
+            icon: "🔌",
+            title: "Блок питания",
+            text:
+                "Преобразует электричество и подаёт питание комплектующим."
+        },
+
+        {
+            icon: "❄️",
+            title: "Охлаждение",
+            text:
+                "Отводит тепло от процессора и помогает поддерживать рабочую температуру."
+        },
+
+        {
+            icon: "📦",
+            title: "Корпус",
+            text:
+                "Защищает комплектующие и обеспечивает место для их установки и охлаждения."
+        }
+
+    ];
+
+
+    container.innerHTML = "";
+
+
+    categories.forEach(item => {
+
+        container.innerHTML += `
+
+        <div class="card">
+
+            <div class="product-icon">
+                ${item.icon}
+            </div>
+
+            <h2>
+                ${item.title}
+            </h2>
+
+            <p class="muted">
+                ${item.text}
+            </p>
+
+        </div>
+
+        `;
+
+    });
+
+}
+
+
+
+/* =========================================================
+   КАТАЛОГ
+========================================================= */
+
+function renderCatalog(list = products) {
+
+    const container =
+        document.getElementById("catalogGrid");
+
+
+    container.innerHTML = "";
+
+
+    if (list.length === 0) {
+
+        container.innerHTML = `
+
+        <div class="card">
+
+            <h2>
+                Ничего не найдено
+            </h2>
+
+            <p class="muted">
+                Попробуй другое название.
+            </p>
+
+        </div>
+
+        `;
+
+        return;
+    }
+
+
+    list.forEach(item => {
+
+        container.innerHTML += `
+
+        <div class="card">
+
+            <div class="product-icon">
+                ${item.icon}
+            </div>
+
+            <span class="badge">
+                ${item.brand}
+            </span>
+
+            <h2>
+                ${item.name}
+            </h2>
+
+            <p class="muted">
+                ${item.category}
+            </p>
+
+            ${
+                item.memory
+                ? `<p>Память: <b>${item.memory}</b></p>`
+                : ""
+            }
+
+            ${
+                item.memoryType
+                ? `<p>Тип памяти: <b>${item.memoryType}</b></p>`
+                : ""
+            }
+
+            ${
+                item.cores
+                ? `<p>Ядра: <b>${item.cores}</b></p>`
+                : ""
+            }
+
+            <p class="muted">
+                ${item.description}
+            </p>
+
+            <div class="price">
+                ${money(item.price)}
+            </div>
+
+            <button
+                class="btn"
+                data-buy="${item.id}"
+            >
+                Добавить в сборку
+            </button>
+
+        </div>
+
+        `;
+
+    });
+
+
+    container
+        .querySelectorAll("[data-buy]")
+        .forEach(button => {
+
+            button.addEventListener(
+                "click",
+                () => {
+
+                    const item =
+                        products.find(
+                            p =>
+                                p.id ===
+                                button.dataset.buy
+                        );
+
+
+                    if (item) {
+
+                        cart.push(item);
+
+                        renderCart();
+
+                        alert(
+                            item.name +
+                            " добавлен в корзину."
+                        );
+
+                    }
+
+                }
+            );
+
+        });
+
+}
+
+
+document
+    .getElementById("catalogSearch")
+    .addEventListener("input", event => {
+
+        const query =
+            event.target.value
+                .trim()
+                .toLowerCase();
+
+
+        const filtered =
+            products.filter(item => {
+
+                const text = (
+
+                    item.name +
+                    " " +
+                    item.brand +
+                    " " +
+                    item.category +
+                    " " +
+                    item.description
+
+                ).toLowerCase();
+
+
+                return text.includes(query);
+
+            });
+
+
+        renderCatalog(filtered);
+
+    });
+
+
+
+/* =========================================================
+   СРАВНЕНИЕ
+========================================================= */
+
+const compareProducts =
+    products.filter(item =>
+
+        item.category === "Видеокарта" ||
+        item.category === "Процессор"
+
+    );
+
+
+const selectA =
+    document.getElementById("compareA");
+
+const selectB =
+    document.getElementById("compareB");
+
+
+compareProducts.forEach(item => {
+
+    selectA.innerHTML += `
+
+        <option value="${item.id}">
+            ${item.name}
+        </option>
+
+    `;
+
+
+    selectB.innerHTML += `
+
+        <option value="${item.id}">
+            ${item.name}
+        </option>
+
+    `;
+
+});
+
+
+selectA.value = "rtx4070";
+selectB.value = "rx7800xt";
+
+
+
+function compareHTML(item) {
+
+    return `
+
+        <div class="product-icon">
+            ${item.icon}
+        </div>
+
+        <span class="badge">
+            ${item.brand}
+        </span>
+
+        <h2>
+            ${item.name}
+        </h2>
+
+        <div class="stat">
+            <span>Категория</span>
+            <b>${item.category}</b>
+        </div>
+
+        <div class="stat">
+            <span>Память</span>
+            <b>${item.memory || "—"}</b>
+        </div>
+
+        <div class="stat">
+            <span>Тип памяти</span>
+            <b>${item.memoryType || "—"}</b>
+        </div>
+
+        <div class="stat">
+            <span>Ядра</span>
+            <b>${item.cores || "—"}</b>
+        </div>
+
+        <div class="stat">
+            <span>Цена</span>
+            <b>${money(item.price)}</b>
+        </div>
+
+    `;
+
+}
+
+
+
+function updateComparison() {
+
+    const a =
+        products.find(
+            p => p.id === selectA.value
+        );
+
+
+    const b =
+        products.find(
+            p => p.id === selectB.value
+        );
+
+
+    document.getElementById(
+        "compareInfoA"
+    ).innerHTML =
+        compareHTML(a);
+
+
+    document.getElementById(
+        "compareInfoB"
+    ).innerHTML =
+        compareHTML(b);
+
+}
+
+
+selectA.addEventListener(
+    "change",
+    updateComparison
+);
+
+selectB.addEventListener(
+    "change",
+    updateComparison
+);
+
+
+
+/* =========================================================
+   ИГРА
+========================================================= */
+
+const questions = [
+
+    {
+        question:
+            "Какая деталь отвечает за обработку графики?",
+
+        answers: [
+            "SSD",
+            "Видеокарта",
+            "Блок питания",
+            "Оперативная память"
+        ],
+
+        correct: 1
+    },
+
+    {
+        question:
+            "Где временно хранятся данные работающих программ?",
+
+        answers: [
+            "SSD",
+            "ОЗУ",
+            "Блок питания",
+            "Корпус"
+        ],
+
+        correct: 1
+    },
+
+    {
+        question:
+            "Что выполняет вычисления?",
+
+        answers: [
+            "Процессор",
+            "Вентилятор",
+            "Корпус",
+            "Монитор"
+        ],
+
+        correct: 0
+    },
+
+    {
+        question:
+            "Что хранит Windows и файлы?",
+
+        answers: [
+            "ОЗУ",
+            "SSD",
+            "Процессор",
+            "Кулер"
+        ],
+
+        correct: 1
+    },
+
+    {
+        question:
+            "Для чего нужен блок питания?",
+
+        answers: [
+            "Для хранения игр",
+            "Для вывода изображения",
+            "Для питания компонентов",
+            "Для охлаждения"
+        ],
+
+        correct: 2
+    }
+
+];
+
+
+let score = 0;
+let questionIndex = 0;
+
+
+
+function renderQuiz() {
+
+    const container =
+        document.getElementById("quiz");
+
+
+    if (
+        questionIndex >=
+        questions.length
+    ) {
+
+        container.innerHTML = `
+
+            <h2>
+                🎉 Тест завершён
+            </h2>
+
+            <p class="score">
+                ${score} / ${questions.length}
+            </p>
+
+            <button
+                class="btn"
+                id="restartQuiz"
+            >
+                Пройти снова
+            </button>
+
+        `;
+
+
+        document
+            .getElementById("restartQuiz")
+            .addEventListener(
+                "click",
+                restartQuiz
+            );
+
+
+        return;
+    }
+
+
+    const question =
+        questions[questionIndex];
+
+
+    container.innerHTML = `
+
+        <div class="quiz-question">
+            ${question.question}
+        </div>
+
+        <div class="answers">
+
+            ${question.answers
+                .map(
+                    (answer, index) => `
+
+                    <button
+                        class="answer"
+                        data-answer="${index}"
+                    >
+                        ${answer}
+                    </button>
+
+                    `
+                )
+                .join("")}
+
+        </div>
+
+    `;
+
+
+    container
+        .querySelectorAll(".answer")
+        .forEach(button => {
+
+            button.addEventListener(
+                "click",
+                () => {
+
+                    checkAnswer(
+                        Number(
+                            button.dataset.answer
+                        ),
+                        button
+                    );
+
+                }
+            );
+
+        });
+
+}
+
+
+
+function checkAnswer(index, button) {
+
+    const question =
+        questions[questionIndex];
+
+
+    const buttons =
+        document.querySelectorAll(
+            ".answer"
+        );
+
+
+    buttons.forEach(b => {
+        b.disabled = true;
+    });
+
+
+    if (
+        index ===
+        question.correct
+    ) {
+
+        score++;
+
+        button.classList.add(
+            "correct"
+        );
+
+    } else {
+
+        button.classList.add(
+            "wrong"
+        );
+
+
+        buttons[
+            question.correct
+        ].classList.add(
+            "correct"
+        );
+
+    }
+
+
+    document.getElementById(
+        "score"
+    ).textContent = score;
+
+
+    setTimeout(() => {
+
+        questionIndex++;
+
+        renderQuiz();
+
+    }, 800);
+
+}
+
+
+
+function restartQuiz() {
+
+    score = 0;
+
+    questionIndex = 0;
+
+    document.getElementById(
+        "score"
+    ).textContent = "0";
+
+    renderQuiz();
+
+}
+
+
+
+/* =========================================================
+   МАГАЗИН
+========================================================= */
+
+function renderShop() {
+
+    const container =
+        document.getElementById("shopGrid");
+
+
+    container.innerHTML = "";
+
+
+    products.forEach(item => {
+
+        container.innerHTML += `
+
+        <div class="card">
+
+            <div class="product-icon">
+                ${item.icon}
+            </div>
+
+            <span class="badge">
+                ${item.category}
+            </span>
+
+            <h2>
+                ${item.name}
+            </h2>
+
+            <p class="muted">
+                ${item.brand}
+            </p>
+
+            <div class="price">
+                ${money(item.price)}
+            </div>
+
+            <button
+                class="btn"
+                data-shop="${item.id}"
+            >
+                Купить
+            </button>
+
+        </div>
+
+        `;
+
+    });
+
+
+    container
+        .querySelectorAll("[data-shop]")
+        .forEach(button => {
+
+            button.addEventListener(
+                "click",
+                () => {
+
+                    const item =
+                        products.find(
+                            p =>
+                                p.id ===
+                                button.dataset.shop
+                        );
+
+
+                    cart.push(item);
+
+                    renderCart();
+
+                }
+            );
+
+        });
+
+}
+
+
+
+/* =========================================================
+   КОРЗИНА
+========================================================= */
+
+function renderCart() {
+
+    const container =
+        document.getElementById(
+            "cartItems"
+        );
+
+
+    document.getElementById(
+        "cartCount"
+    ).textContent =
+        cart.length;
+
+
+    if (cart.length === 0) {
+
+        container.innerHTML = `
+
+            <p class="muted">
+                Корзина пуста.
+            </p>
+
+        `;
+
+    } else {
+
+        container.innerHTML = "";
+
+
+        cart.forEach((item, index) => {
+
+            container.innerHTML += `
+
+                <div class="cart-row">
+
+                    <div>
+
+                        <b>
+                            ${item.icon || "📦"}
+                            ${item.name}
+                        </b>
+
+                        <div class="muted">
+                            ${item.category}
+                        </div>
+
+                    </div>
+
+                    <div>
+
+                        <strong>
+                            ${money(item.price)}
+                        </strong>
+
+                        <button
+                            class="btn red"
+                            data-remove="${index}"
+                        >
+                            ×
+                        </button>
+
+                    </div>
+
+                </div>
+
+            `;
+
+        });
+
+
+        container
+            .querySelectorAll("[data-remove]")
+            .forEach(button => {
+
+                button.addEventListener(
+                    "click",
+                    () => {
+
+                        cart.splice(
+                            Number(
+                                button.dataset.remove
+                            ),
+                            1
+                        );
+
+                        renderCart();
+
+                    }
+                );
+
+            });
+
+    }
+
+
+    const total =
+        cart.reduce(
+            (sum, item) =>
+                sum + item.price,
+            0
+        );
+
+
+    document.getElementById(
+        "cartTotal"
+    ).textContent =
+        money(total);
+
+}
+
+
+
+document
+    .getElementById("checkoutButton")
+    .addEventListener(
+        "click",
+        () => {
+
+            if (cart.length === 0) {
+
+                alert(
+                    "Корзина пустая."
+                );
+
+                return;
+            }
+
+
+            alert(
+                "Заказ оформлен!\n\n" +
+                "Это демонстрация индивидуального проекта."
+            );
+
+        }
+    );
+
+
+
+/* =========================================================
+   3D ENGINE
+========================================================= */
+
+const scene =
+    new THREE.Scene();
+
+
+const camera =
+    new THREE.PerspectiveCamera(
+        45,
+        1,
+        .1,
+        100
+    );
+
+
+camera.position.set(
+    5.5,
+    3.6,
+    7
+);
+
+
+
+const renderer =
+    new THREE.WebGLRenderer({
+
+        antialias: true,
+
+        alpha: true
+
+    });
+
+
+renderer.setPixelRatio(
+    Math.min(
+        window.devicePixelRatio,
+        2
+    )
+);
+
+
+renderer.outputColorSpace =
+    THREE.SRGBColorSpace;
+
+
+document
+    .getElementById("scene")
+    .appendChild(
+        renderer.domElement
+    );
+
+
+
+const controls =
+    new OrbitControls(
+        camera,
+        renderer.domElement
+    );
+
+
+controls.enableDamping = true;
+
+controls.dampingFactor = .08;
+
+controls.enablePan = false;
+
+controls.minDistance = 4;
+
+controls.maxDistance = 11;
+
+controls.target.set(
+    0,
+    2,
+    0
+);
+
+
+
+/* =========================================================
+   СВЕТ
+========================================================= */
+
+scene.add(
+    new THREE.HemisphereLight(
+        0xcfe3ff,
+        0x12151c,
+        2.5
+    )
+);
+
+
+const keyLight =
+    new THREE.DirectionalLight(
+        0xffffff,
+        3
+    );
+
+keyLight.position.set(
+    5,
+    8,
+    6
+);
+
+scene.add(keyLight);
+
+
+const fillLight =
+    new THREE.PointLight(
+        0x5da9ff,
+        25,
+        15
+    );
+
+fillLight.position.set(
+    -4,
+    4,
+    4
+);
+
+scene.add(fillLight);
+
+
+
+/* =========================================================
+   ПК
+========================================================= */
+
+const computer =
+    new THREE.Group();
+
+scene.add(computer);
+
+
+
+function makeBox(
+    width,
+    height,
+    depth,
+    x,
+    y,
+    z,
+    color,
+    opacity = 1
+) {
+
+    const geometry =
+        new THREE.BoxGeometry(
+            width,
+            height,
+            depth
+        );
+
+
+    const material =
+        new THREE.MeshStandardMaterial({
+
+            color: color,
+
+            metalness: .55,
+
+            roughness: .28,
+
+            transparent:
+                opacity < 1,
+
+            opacity: opacity
+
+        });
+
+
+    const mesh =
+        new THREE.Mesh(
+            geometry,
+            material
+        );
+
+
+    mesh.position.set(
+        x,
+        y,
+        z
+    );
+
+
+    return mesh;
+
+}
+
+
+
+/* =========================================================
+   КОРПУС
+========================================================= */
+
+computer.add(
+    makeBox(
+        4,
+        .25,
+        3.2,
+        0,
+        0,
+        0,
+        0x151b25
+    )
+);
+
+
+computer.add(
+    makeBox(
+        4,
+        .25,
+        3.2,
+        0,
+        4.3,
+        0,
+        0x151b25
+    )
+);
+
+
+computer.add(
+    makeBox(
+        .25,
+        4.3,
+        3.2,
+        -2,
+        2.15,
+        0,
+        0x151b25
+    )
+);
+
+
+computer.add(
+    makeBox(
+        .25,
+        4.3,
+        3.2,
+        2,
+        2.15,
+        0,
+        0x151b25
+    )
+);
+
+
+computer.add(
+    makeBox(
+        4,
+        4.3,
+        .2,
+        0,
+        2.15,
+        -1.6,
+        0x151b25
+    )
+);
+
+
+/* стеклянная стенка */
+
+computer.add(
+    makeBox(
+        4,
+        4.3,
+        .06,
+        0,
+        2.15,
+        1.6,
+        0x6eaef5,
+        .16
+    )
+);
+
+
+
+/* =========================================================
+   МАТЕРИНСКАЯ ПЛАТА
+========================================================= */
+
+computer.add(
+    makeBox(
+        2.8,
+        .12,
+        2.3,
+        0,
+        3.25,
+        -.45,
+        0x17432e
+    )
+);
+
+
+
+/* =========================================================
+   CPU
+========================================================= */
+
+computer.add(
+    makeBox(
+        .7,
+        .16,
+        .7,
+        0,
+        3.42,
+        -.55,
+        0xd1d7df
+    )
+);
+
+
+
+/* =========================================================
+   RAM
+========================================================= */
+
+for (
+    let i = 0;
+    i < 2;
+    i++
+) {
+
+    computer.add(
+        makeBox(
+            .15,
+            .75,
+            .75,
+            -.7 + i * .35,
+            3.75,
+            -.5,
+            0x394b66
+        )
+    );
+
+}
+
+
+
+/* =========================================================
+   GPU
+========================================================= */
+
+const gpu =
+    makeBox(
+        2.8,
+        .52,
+        .8,
+        0,
+        2.35,
+        .4,
+        0x222936
+    );
+
+computer.add(gpu);
+
+
+
+/* =========================================================
+   GPU FANS
+========================================================= */
+
+for (
+    let i = 0;
+    i < 3;
+    i++
+) {
+
+    const fan =
+        new THREE.Mesh(
+
+            new THREE.CylinderGeometry(
+                .34,
+                .34,
+                .08,
+                32
+            ),
+
+            new THREE.MeshStandardMaterial({
+                color: 0x080b10,
+                metalness: .7,
+                roughness: .2
+            })
+
+        );
+
+
+    fan.rotation.x =
+        Math.PI / 2;
+
+
+    fan.position.set(
+        -.85 + i * .85,
+        2.35,
+        .82
+    );
+
+
+    computer.add(fan);
+
+}
+
+
+
+/* =========================================================
+   SSD
+========================================================= */
+
+computer.add(
+    makeBox(
+        .35,
+        .1,
+        1.2,
+        .8,
+        3.05,
+        -.45,
+        0x687487
+    )
+);
+
+
+
+/* =========================================================
+   БП
+========================================================= */
+
+computer.add(
+    makeBox(
+        1.7,
+        .8,
+        1.4,
+        0,
+        .7,
+        -.45,
+        0x0d1118
+    )
+);
+
+
+
+/* =========================================================
+   ВЕНТИЛЯТОРЫ КОРПУСА
+========================================================= */
+
+for (
+    let i = 0;
+    i < 3;
+    i++
+) {
+
+    const fan =
+        new THREE.Mesh(
+
+            new THREE.CylinderGeometry(
+                .5,
+                .5,
+                .1,
+                32
+            ),
+
+            new THREE.MeshStandardMaterial({
+                color: 0x242d3b,
+                metalness: .5
+            })
+
+        );
+
+
+    fan.rotation.x =
+        Math.PI / 2;
+
+
+    fan.position.set(
+        -1.15 + i * 1.15,
+        2,
+        1.5
+    );
+
+
+    computer.add(fan);
+
+}
+
+
+
+/* =========================================================
+   RGB
+========================================================= */
+
+const rgb =
+    new THREE.Mesh(
+
+        new THREE.BoxGeometry(
+            2.8,
+            .035,
+            .05
+        ),
+
+        new THREE.MeshBasicMaterial({
+            color: 0x5da9ff
+        })
+
+    );
+
+
+rgb.position.set(
+    0,
+    2.75,
+    1.53
+);
+
+
+computer.add(rgb);
+
+
+
+/* =========================================================
+   АВТОПОВОРОТ
+========================================================= */
+
+let autoRotate = true;
+
+
+/*
+    Останавливаем автоповорот,
+    когда пользователь касается модели.
+*/
+
+renderer.domElement.addEventListener(
+    "pointerdown",
+    () => {
+        autoRotate = false;
+    }
+);
+
+
+/* =========================================================
+   РАЗМЕР 3D
+========================================================= */
+
+function resize3D() {
+
+    const container =
+        document.getElementById("scene");
+
+
+    const width =
+        container.clientWidth;
+
+    const height =
+        container.clientHeight;
+
+
+    if (
+        width === 0 ||
+        height === 0
+    ) {
+        return;
+    }
+
+
+    renderer.setSize(
+        width,
+        height,
+        false
+    );
+
+
+    camera.aspect =
+        width / height;
+
+
+    camera.updateProjectionMatrix();
+
+}
+
+
+window.addEventListener(
+    "resize",
+    resize3D
+);
+
+
+resize3D();
+
+
+
+/* =========================================================
+   ANIMATION LOOP
+========================================================= */
+
+function animate() {
+
+    requestAnimationFrame(
+        animate
+    );
+
+
+    if (autoRotate) {
+
+        computer.rotation.y +=
+            .0018;
+
+    }
+
+
+    controls.update();
+
+
+    renderer.render(
+        scene,
+        camera
+    );
+
+}
+
+
+animate();
+
+
+
+/* =========================================================
+   ПЕРВИЧНЫЙ ЗАПУСК
+========================================================= */
+
+renderBuild();
+
+renderLearn();
+
+renderCatalog();
+
+renderShop();
+
+renderCart();
+
+updateComparison();
+
+renderQuiz();
+
+</script>
+
+</body>
+</html>
